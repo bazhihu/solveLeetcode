@@ -17,6 +17,12 @@ func main() {
 	//}
 	//return
 
+	//f1, err := os.Create("./cpu.pprof") //在当前路径下创建一个cpu.pprof 文件
+	//if err != nil {
+	//	return
+	//}
+	//pprof.StartCPUProfile(f1)
+
 	hostName := flag.String("hostname", "www.baidu.com", "hostname to test")
 	startPost := flag.Int("start-port", 1, "the port on which the scanning starts")
 	endPort := flag.Int("end-port", 22222, "the port from which the scanning ends")
@@ -61,6 +67,11 @@ func main() {
 	wwg.Wait()
 
 	fmt.Printf("opened ports: %v\n", ports)
+
+	//defer func() {
+	//	pprof.StopCPUProfile()
+	//	f1.Close()
+	//}()
 }
 
 func isOpen(host string, port int, timeout time.Duration) (bool, error) {
