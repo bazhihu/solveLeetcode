@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"os"
+	"runtime/pprof"
 	"sync"
 	"time"
 )
@@ -17,11 +19,11 @@ func main() {
 	//}
 	//return
 
-	//f1, err := os.Create("./cpu.pprof") //在当前路径下创建一个cpu.pprof 文件
-	//if err != nil {
-	//	return
-	//}
-	//pprof.StartCPUProfile(f1)
+	f1, err := os.Create("./mem.pprof") //在当前路径下创建一个cpu.pprof 文件
+	if err != nil {
+		return
+	}
+	pprof.WriteHeapProfile(f1)
 
 	hostName := flag.String("hostname", "www.baidu.com", "hostname to test")
 	startPost := flag.Int("start-port", 1, "the port on which the scanning starts")
@@ -68,10 +70,10 @@ func main() {
 
 	fmt.Printf("opened ports: %v\n", ports)
 
-	//defer func() {
-	//	pprof.StopCPUProfile()
-	//	f1.Close()
-	//}()
+	defer func() {
+		pprof.StopCPUProfile()
+		f1.Close()
+	}()
 }
 
 func isOpen(host string, port int, timeout time.Duration) (bool, error) {

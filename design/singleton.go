@@ -1,7 +1,7 @@
 /**
 单例模式
 */
-package design
+package main
 
 import (
 	"fmt"
@@ -21,11 +21,25 @@ func (A *Singleton) echo() {
 var singleton *Singleton
 var once sync.Once
 
+// 保证只执行一次
 func GetInstance() *Singleton {
 	once.Do(func() {
 		singleton = &Singleton{}
 	})
+	return singleton
+}
 
+// 双重锁 避免多次加锁
+var mu sync.Mutex
+
+func GetInstanceTwo() *Singleton {
+	if singleton == nil {
+		mu.Lock()
+		defer mu.Unlock()
+		if singleton == nil {
+			singleton = &Singleton{}
+		}
+	}
 	return singleton
 }
 

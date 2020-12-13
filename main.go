@@ -1,8 +1,10 @@
 package main
 
 import (
+	"container/heap"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 )
 
@@ -23,4 +25,5 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
+	math.M()
 }
