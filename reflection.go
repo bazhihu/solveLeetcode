@@ -117,10 +117,19 @@ func main() {
 	}{}
 	Get(aa)
 	fmt.Println(aa)
+
+	// 批量赋值
+	aArr := &[]struct {
+		A int     `json:"a"`
+		B float64 `json:"b"`
+		C string  `json:"c"`
+	}{}
+	GetM(aArr)
+	fmt.Println(aArr)
 }
 
 // 从结构体中 利用反射自动赋值
-// result 是一个指针
+// result 指针类型
 func Get(result interface{}) {
 	pv := reflect.ValueOf(result)
 	elem := pv.Elem() // 返回元素
@@ -140,8 +149,39 @@ func Get(result interface{}) {
 }
 
 // 批量从结构体中 利用反射自动赋值
-func GetM() {
+// result 指针类型
+func GetM(result interface{}) {
+	pv := reflect.ValueOf(result)
 
+	// 获取元素
+	elem := pv.Elem()
+
+	typ := elem.Type()
+	// 根据对象 获取对象的零值
+	midd := reflect.Zero(typ)
+
+	// 获取元素的类型和长度
+	elemTyp := typ.Elem()
+	count := elemTyp.NumField()
+
+	for i := 0; i < 10; i++ {
+		elemRow := reflect.New(elemTyp).Elem() // 根据新建一个类型反射的结构体
+		for i := 0; i < count; i++ {
+			switch elemRow.Field(i).Kind() { // 根据类型循环赋值
+			case reflect.Float64:
+				elemRow.Field(i).SetFloat(float64(i))
+			case reflect.Int:
+				elemRow.Field(i).SetInt(int64(i))
+			case reflect.String:
+				elemRow.Field(i).SetString(strconv.Itoa(i))
+			}
+		}
+		// 将结构体 放入数组中
+		midd = reflect.Append(midd, elemRow)
+	}
+
+	// 将中间值赋给原对象
+	elem.Set(midd)
 }
 
 // 批量从反射对象中 读取结构体信息
