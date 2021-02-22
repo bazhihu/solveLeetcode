@@ -1,8 +1,8 @@
 package main
 
 /**
-交替输出自然数 先输出 奇数 然后输出 偶数
-*/
+
+ */
 
 import (
 	"fmt"
@@ -10,6 +10,11 @@ import (
 )
 
 func main() {
+	// 交替输出自然数 先输出 奇数 然后输出 偶数
+	sayMain()
+}
+
+func sayMain() {
 	var wg = &sync.WaitGroup{}
 	ch1 := make(chan int)
 	ch2 := make(chan int)
