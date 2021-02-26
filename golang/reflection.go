@@ -3,6 +3,7 @@ package golang
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 )
 
 /**
@@ -48,6 +49,7 @@ fmt.Println(y)
 
 var a float64
 fmt.Println(a)
+#va := reflect.ValueOf(a) // a 拷贝给了reflect.ValueOf  就无法修改a
 va := reflect.ValueOf(&a)
 va.Elem().SetFloat(11)
 fmt.Println(a)
@@ -106,4 +108,94 @@ func main() {
 	va := reflect.ValueOf(&a)
 	va.Elem().SetFloat(11)
 	fmt.Println(a)
+
+	// 单独赋值
+	aa := &struct {
+		A int     `json:"a"`
+		B float64 `json:"b"`
+		C string  `json:"c"`
+	}{}
+	Get(aa)
+	fmt.Println(aa)
+
+	// 批量赋值
+	aArr := &[]struct {
+		A int     `json:"a"`
+		B float64 `json:"b"`
+		C string  `json:"c"`
+	}{}
+	GetM(aArr)
+	fmt.Println(aArr)
+}
+
+// 从结构体中 利用反射自动赋值
+// result 指针类型
+func Get(result interface{}) {
+	pv := reflect.ValueOf(result)
+	elem := pv.Elem() // 返回元素
+
+	count := elem.NumField() // 元素的长度
+
+	for i := 0; i < count; i++ {
+		switch elem.Field(i).Kind() { // 根据类型循环赋值
+		case reflect.Float64:
+			elem.Field(i).SetFloat(float64(i))
+		case reflect.Int:
+			elem.Field(i).SetInt(int64(i))
+		case reflect.String:
+			elem.Field(i).SetString(strconv.Itoa(i))
+		}
+	}
+}
+
+// 批量从结构体中 利用反射自动赋值
+// result 指针类型
+func GetM(result interface{}) {
+	pv := reflect.ValueOf(result)
+
+	// 获取元素
+	elem := pv.Elem()
+
+	typ := elem.Type()
+	// 根据对象 获取对象的零值
+	midd := reflect.Zero(typ)
+
+	// 获取元素的类型和长度
+	elemTyp := typ.Elem()
+	count := elemTyp.NumField()
+
+	for i := 0; i < 10; i++ {
+		elemRow := reflect.New(elemTyp).Elem() // 根据新建一个类型反射的结构体
+		for i := 0; i < count; i++ {
+			switch elemRow.Field(i).Kind() { // 根据类型循环赋值
+			case reflect.Float64:
+				elemRow.Field(i).SetFloat(float64(i))
+			case reflect.Int:
+				elemRow.Field(i).SetInt(int64(i))
+			case reflect.String:
+				elemRow.Field(i).SetString(strconv.Itoa(i))
+			}
+		}
+		// 将结构体 放入数组中
+		midd = reflect.Append(midd, elemRow)
+	}
+
+	// 将中间值赋给原对象
+	elem.Set(midd)
+}
+
+// 批量从反射对象中 读取结构体信息
+func SetM(fieldStruct interface{}) (keyArr, valArr []interface{}) {
+	// 结构体 中的tag 和 值
+	keyArr, valArr = make([]interface{}, 0), make([]interface{}, 0)
+
+	typ := reflect.TypeOf(fieldStruct) // 结构体的类型
+	va := reflect.ValueOf(fieldStruct) // 结构体的值
+	count := va.NumField()             // 结构体的数量
+
+	for i := 0; i < count; i++ {
+		valArr = append(valArr, va.Field(i).Interface())      // 获取第I个Field的值
+		keyArr = append(keyArr, typ.Field(i).Tag.Get("json")) // 获取第I个Field的值tag
+	}
+	return
 }
