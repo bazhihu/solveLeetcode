@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"gitee.com/ikongjix/go_common/redis_db/master_db"
-	"sync"
 	"time"
 
 	//"gitee.com/ikongjix/go_common/redis_db/master_db"
@@ -61,30 +60,34 @@ func main() {
 	//a := &ab{}
 	//a.start()
 
-	var d sync.WaitGroup
-	d.Add(1)
-	go func() {
-		defer d.Done()
-		n := 0
-		for {
+	m := time.Now()
+	time.Sleep(1 * time.Second)
+	fmt.Println(time.Since(m))
 
-			n++
-			log.Println("asda", n)
-		}
-	}()
-
-	go func() {
-		defer d.Done()
-		n := 0
-		for {
-			//runtime.Gosched()
-			n++
-			log.Println(n)
-		}
-	}()
-
-	d.Wait()
-	return
+	//var d sync.WaitGroup
+	//d.Add(1)
+	//go func() {
+	//	defer d.Done()
+	//	n := 0
+	//	for {
+	//
+	//		n++
+	//		log.Println("asda", n)
+	//	}
+	//}()
+	//
+	//go func() {
+	//	defer d.Done()
+	//	n := 0
+	//	for {
+	//		//runtime.Gosched()
+	//		n++
+	//		log.Println(n)
+	//	}
+	//}()
+	//
+	//d.Wait()
+	//return
 
 	//var a = "asdfghjkl"
 	//
