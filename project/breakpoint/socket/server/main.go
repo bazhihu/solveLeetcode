@@ -1,7 +1,21 @@
 package main
 
 import (
+	"io"
+	"net"
+)
+
+/*
+1、创建连接
+2、发送上次接收到的文件内容位置
+3、客户端就从上次断点的位置继续发送文件内容
+4、客户端发送文件内容完毕，通知服务端
+5、断开连接
+*/
+
+import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -9,8 +23,20 @@ import (
 	"syscall"
 )
 
-func serverConn(conn net.Conn) error {
-	return nil
+func serverConn(conn net.Conn) {
+	for {
+		var buf = make([]byte, 10)
+		n, err := conn.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				log.Println("server io EOF")
+				return
+			}
+			log.Fatalf("server read faild: %s\n", err)
+		}
+
+		log.Printf("recevice %d bytes, content is 【%s】\n", n, string(buf[:n]))
+	}
 }
 
 func main() {
@@ -27,14 +53,14 @@ func main() {
 	var errChan = make(chan error)
 
 	go func() {
-		for {
-			conn, err := l.Accept()
-			if err != nil {
-				log.Fatalf("accept faild: %s\n", err)
-				errChan <- err
-			}
-			serverConn(conn)
+		conn, err := l.Accept()
+		defer conn.Close()
+		if err != nil {
+			log.Fatalf("accept faild: %s\n", err)
+			errChan <- err
 		}
+		serverConn(conn)
+
 	}()
 
 	go func() {
