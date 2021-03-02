@@ -2,15 +2,21 @@ package point
 
 import (
 	"database/sql"
+	"encoding/csv"
 	"io"
 	"log"
 	"net"
 	"os"
 	"solveLeetcode/project/binlog/model"
 	"strconv"
+	"time"
 )
 
 func ServerConn(conn net.Conn, db *sql.DB) {
+	var (
+		filename string
+		postfix  string
+	)
 	for {
 		var buf = make([]byte, 10)
 		n, err := conn.Read(buf)
@@ -44,7 +50,58 @@ func ServerConn(conn net.Conn, db *sql.DB) {
 
 	// 处理数据
 	var bin = model.Binlog{}
-	bin.CreateTable(db, "")
+
+	switch postfix {
+	case "sql":
+		fileInfo, err := os.Stat(filename)
+		if err != nil {
+			log.Fatalf("err :%+v", err)
+			return
+		}
+		log.Fatalf("size :%d", fileInfo.Size())
+		var buf []byte
+
+		fs, err := os.Open(filename)
+		if err != nil {
+			log.Fatalf("err :%+v", err)
+			return
+		}
+		defer fs.Close()
+
+		n, err := fs.Read(buf[:])
+		if err == io.EOF || err != nil {
+			log.Fatalf("read file err %+v", err)
+			return
+		}
+		bin.CreateTable(db, string(buf[:n]))
+	case "csv":
+		go func() {
+			for {
+				time.Sleep(1 * time.Second)
+				data, _ := model.CacheMap.Load(1)
+				bin.ExecuteSql(db, l.(string))
+			}
+		}()
+		fs, err := os.Open(filename)
+		if err != nil {
+			log.Fatalf("err :%+v", err)
+			return
+		}
+		defer fs.Close()
+
+		r := csv.NewReader(fs)
+		for {
+			row, err := r.Read()
+			if err != nil && err != io.EOF {
+				log.Fatalf("err: %+v", err)
+			}
+			if err == io.EOF {
+				return
+			}
+			bin.ExecuteSqlCache(db, row)
+		}
+	}
+
 }
 
 // 把接收到的内容 写入文件

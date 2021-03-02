@@ -30,6 +30,11 @@ func (bin *Binlog) CreateTable(db *sql.DB, sql string) (bool, error) {
 	return true, err
 }
 
+func (bin *Binlog) ExecuteSqlCache(db *sql.DB, row []string) (bool, error) {
+	CacheMap.Store(1, 1)
+	return true, nil
+}
+
 func (bin *Binlog) ExecuteSql(db *sql.DB, row []string) (bool, error) {
 	l := len(row)
 	var (
