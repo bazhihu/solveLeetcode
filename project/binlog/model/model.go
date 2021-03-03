@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -26,6 +27,12 @@ type Binlog struct {
 }
 
 func (bin *Binlog) CreateTable(db *sql.DB, sql string) (bool, error) {
+	if len(sql) < 1 {
+		return false, nil
+	}
+	var str = ""
+	tableNameReg := regexp.MustCompile(``)
+
 	_, err := db.Exec(sql)
 	return true, err
 }
