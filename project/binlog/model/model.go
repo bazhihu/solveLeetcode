@@ -31,21 +31,23 @@ func (bin *Binlog) CreateTable(db *sql.DB, sql string) (bool, error) {
 }
 
 func (bin *Binlog) ExecuteSqlCache(db *sql.DB, row []string) (bool, error) {
-	CacheMap.Store(1, 1)
+	r := strings.Join(row, ",")
+	CacheMap.Store(r, r)
 	return true, nil
 }
 
-func (bin *Binlog) ExecuteSql(db *sql.DB, row []string) (bool, error) {
-	l := len(row)
+func (bin *Binlog) ExecuteSql(db *sql.DB, row string) (bool, error) {
+	rows := strings.Split(row, ",")
+	l := len(rows)
 	var (
 		b   bool  = false
 		err error = nil
 	)
-	switch row[l-1] {
+	switch rows[l-1] {
 	case "I":
-		b, err = bin.insert(db, row[0:l-1])
+		b, err = bin.insert(db, rows[0:l-1])
 	case "D":
-		b, err = bin.delete(db, row[0:l-1])
+		b, err = bin.delete(db, rows[0:l-1])
 	}
 	return b, err
 }

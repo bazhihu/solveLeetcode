@@ -9,7 +9,6 @@ import (
 	"os"
 	"solveLeetcode/project/binlog/model"
 	"strconv"
-	"time"
 )
 
 func ServerConn(conn net.Conn, db *sql.DB) {
@@ -75,13 +74,6 @@ func ServerConn(conn net.Conn, db *sql.DB) {
 		}
 		bin.CreateTable(db, string(buf[:n]))
 	case "csv":
-		go func() {
-			for {
-				time.Sleep(1 * time.Second)
-				data, _ := model.CacheMap.Load(1)
-				bin.ExecuteSql(db, l.(string))
-			}
-		}()
 		fs, err := os.Open(filename)
 		if err != nil {
 			log.Fatalf("err :%+v", err)

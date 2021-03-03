@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"solveLeetcode/project/binlog/model"
 	"solveLeetcode/project/binlog/point"
 	"syscall"
 	"time"
@@ -62,6 +63,28 @@ func main() {
 				errChan <- err
 			}
 			point.ServerConn(conn, db)
+		}
+	}()
+
+	go func() {
+		// 缓存数据异步入库
+		var bin = model.Binlog{}
+		for {
+			time.Sleep(1 * time.Second)
+			keys := make([]interface{}, 0)
+			model.CacheMap.Range(func(key, value interface{}) bool {
+				var sql string
+				switch value.(type) {
+				case string:
+					sql = value.(string)
+				}
+				keys = append(keys, key)
+				bin.ExecuteSql(db, sql)
+				return true
+			})
+			for k, _ := range keys {
+				model.CacheMap.Delete(keys[k])
+			}
 		}
 	}()
 
