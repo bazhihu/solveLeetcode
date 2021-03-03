@@ -9,7 +9,7 @@ import (
 /*
 	多线程下载的原理
 	可以突破百度网盘下载限制
-
+	https://mojotv.cn/go/go-range-download
 	关键信息
 	http - Accept-Ranges: bytes
 			Content-Length: 13131
