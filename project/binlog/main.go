@@ -57,11 +57,11 @@ func main() {
 	go func() {
 		for {
 			conn, err := l.Accept()
-			defer conn.Close()
 			if err != nil {
 				log.Fatalf("accept faild: %s\n", err)
 				errChan <- err
 			}
+			defer conn.Close()
 			point.ServerConn(conn, db)
 		}
 	}()
@@ -78,8 +78,10 @@ func main() {
 				case string:
 					sql = value.(string)
 				}
-				keys = append(keys, key)
-				bin.ExecuteSql(db, sql)
+				if len(sql) > 0 {
+					keys = append(keys, key)
+					bin.ExecuteSql(db, sql)
+				}
 				return true
 			})
 			for k, _ := range keys {
