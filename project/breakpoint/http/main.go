@@ -39,7 +39,7 @@ func main() {
 	var url string // 下载文件的地址
 
 	url = "https://download.jetbrains.com/go/goland-2020.2.2.dmg"
-	downloader := NewFileDownLoader(url, "", "", 10)
+	downloader := NewFileDownLoader(url, "", "", 100)
 	if err := downloader.Run(); err != nil {
 		log.Fatal(err)
 	}
