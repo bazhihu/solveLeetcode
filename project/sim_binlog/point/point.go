@@ -12,11 +12,7 @@ import (
 	"strings"
 )
 
-func ServerConn(conn net.Conn, db *sql.DB, ch chan<- string) {
-	var (
-		filename string
-		postfix  string
-	)
+func getData(conn net.Conn) (filename, postfix string) {
 	for {
 		var buf = make([]byte, 200)
 		n, err := conn.Read(buf)
@@ -43,7 +39,7 @@ func ServerConn(conn net.Conn, db *sql.DB, ch chan<- string) {
 				log.Fatalf("receive server info faild:%s \n", err)
 			}
 
-			filename := string(buf[:n])
+			filename = string(buf[:n])
 			off := getFileStat(filename)
 			postfix = strings.Split(filename, ".")[1]
 
@@ -57,9 +53,19 @@ func ServerConn(conn net.Conn, db *sql.DB, ch chan<- string) {
 			// 如果接收到客户端同志所有文件内容发送完毕消息则退出
 			log.Fatalf("receive over \n")
 			return
+		default:
+			writeFile(filename, buf[:n])
 		}
-		writeFile(filename, buf[:n])
 	}
+}
+
+func ServerConn(conn net.Conn, db *sql.DB, ch chan<- string) {
+	var (
+		filename string
+		postfix  string
+	)
+
+	filename, postfix = getData(conn)
 
 	// 处理数据
 	var bin = model.Binlog{}
@@ -116,7 +122,7 @@ func writeFile(filename string, content []byte) {
 		fp, err := os.OpenFile(filename, (os.O_CREATE | os.O_WRONLY | os.O_APPEND), 0755)
 		defer fp.Close()
 		if err != nil {
-			log.Fatal("open file faild: %s\n", err)
+			log.Fatalf("open file faild: %s : %s\n", err, filename)
 		}
 		_, err = fp.Write(content)
 		if err != nil {

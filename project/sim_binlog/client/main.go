@@ -60,7 +60,7 @@ func clientConnSql(conn net.Conn) {
 				// 如果已经读取完 文件内容
 				// 就发送 '<--end' 消息通知服务端， 文件内容发送完了
 				time.Sleep(time.Second * 1)
-				clientWrite(conn, []byte("<-- end"))
+				clientWrite(conn, []byte("<--end"))
 				log.Println("send all content, now quit")
 				break
 			}
@@ -111,7 +111,7 @@ func clientConnCsv(conn net.Conn) {
 				// 如果已经读取完 文件内容
 				// 就发送 '<--end' 消息通知服务端， 文件内容发送完了
 				time.Sleep(time.Second * 1)
-				clientWrite(conn, []byte("<-- end"))
+				clientWrite(conn, []byte("<--end"))
 				log.Println("send all content, now quit")
 				break
 			}
