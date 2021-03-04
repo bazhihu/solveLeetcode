@@ -9,8 +9,8 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"solveLeetcode/project/binlog/model"
-	"solveLeetcode/project/binlog/point"
+	"solveLeetcode/project/sim_binlog/model"
+	"solveLeetcode/project/sim_binlog/point"
 	"syscall"
 	"time"
 )

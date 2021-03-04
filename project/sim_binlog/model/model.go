@@ -30,8 +30,13 @@ func (bin *Binlog) CreateTable(db *sql.DB, sql string) (bool, error) {
 	if len(sql) < 1 {
 		return false, nil
 	}
-	var str = ""
-	tableNameReg := regexp.MustCompile(``)
+	tableNameReg := regexp.MustCompile("CREATE TABLE `(\\w+)`")
+	strArr := tableNameReg.FindAllString(sql, 1)
+	if len(strArr) < 1 {
+		return false, nil
+	}
+	// set tableName
+	bin.TableName = strings.Split(strArr[0], "`")[1]
 
 	_, err := db.Exec(sql)
 	return true, err
@@ -93,5 +98,24 @@ func (bin *Binlog) insert(db *sql.DB, row []string) (bool, error) {
 }
 
 func (bin *Binlog) delete(db *sql.DB, row []string) (bool, error) {
-	return true, nil
+	// default id is row[0]
+	if len(row) < 1 {
+		return false, nil
+	}
+
+	var sqlText = fmt.Sprintf("DELETE FROM %s WHERE id = ?", bin.TableName)
+	stmt, err := db.Prepare(sqlText)
+	if nil != err {
+		return false, err
+	}
+	defer stmt.Close()
+	res, err := stmt.Exec(row[0])
+	if nil != err {
+		return false, err
+	}
+	n, err := res.RowsAffected()
+	if nil != err {
+		return false, err
+	}
+	return n > 0, nil
 }

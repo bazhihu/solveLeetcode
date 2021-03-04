@@ -7,7 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
-	"solveLeetcode/project/binlog/model"
+	"solveLeetcode/project/sim_binlog/model"
 	"strconv"
 )
 
