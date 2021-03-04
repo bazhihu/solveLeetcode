@@ -9,15 +9,16 @@ import (
 	"os"
 	"solveLeetcode/project/sim_binlog/model"
 	"strconv"
+	"strings"
 )
 
-func ServerConn(conn net.Conn, db *sql.DB) {
+func ServerConn(conn net.Conn, db *sql.DB, ch chan<- string) {
 	var (
 		filename string
 		postfix  string
 	)
 	for {
-		var buf = make([]byte, 10)
+		var buf = make([]byte, 200)
 		n, err := conn.Read(buf)
 		if err != nil {
 			if err == io.EOF {
@@ -31,10 +32,23 @@ func ServerConn(conn net.Conn, db *sql.DB) {
 
 		switch string(buf[:n]) {
 		case "start-->":
-			off := getFileStat()
+			_, err := conn.Write([]byte("filename"))
+			if err != nil {
+				log.Fatalf("server write faild: %s\n", err)
+			}
+
+			buf := make([]byte, 200)
+			n, err := conn.Read(buf)
+			if err != nil {
+				log.Fatalf("receive server info faild:%s \n", err)
+			}
+
+			filename := string(buf[:n])
+			off := getFileStat(filename)
+			postfix = strings.Split(filename, ".")[1]
 
 			stringoff := strconv.FormatInt(off, 10)
-			_, err := conn.Write([]byte(stringoff))
+			_, err = conn.Write([]byte(stringoff))
 			if err != nil {
 				log.Fatalf("server write faild: %s\n", err)
 			}
@@ -44,7 +58,7 @@ func ServerConn(conn net.Conn, db *sql.DB) {
 			log.Fatalf("receive over \n")
 			return
 		}
-		writeFile(buf[:n])
+		writeFile(filename, buf[:n])
 	}
 
 	// 处理数据
@@ -90,16 +104,16 @@ func ServerConn(conn net.Conn, db *sql.DB) {
 			if err == io.EOF {
 				return
 			}
-			bin.ExecuteSqlCache(db, row)
+			bin.ExecuteSqlCache(db, row, ch)
 		}
 	}
 
 }
 
 // 把接收到的内容 写入文件
-func writeFile(content []byte) {
+func writeFile(filename string, content []byte) {
 	if len(content) != 0 {
-		fp, err := os.OpenFile("test_1.txt", (os.O_CREATE | os.O_WRONLY | os.O_APPEND), 0755)
+		fp, err := os.OpenFile(filename, (os.O_CREATE | os.O_WRONLY | os.O_APPEND), 0755)
 		defer fp.Close()
 		if err != nil {
 			log.Fatal("open file faild: %s\n", err)
@@ -114,8 +128,8 @@ func writeFile(content []byte) {
 
 // 获取已接受的内容的大小
 // 断点续传需要把已接收内容大小 通知客户端从哪儿开始发送文件内容
-func getFileStat() int64 {
-	fileInfo, err := os.Stat("test_1.txt")
+func getFileStat(fileName string) int64 {
+	fileInfo, err := os.Stat(fileName)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Printf("file size: %d\n", 0)

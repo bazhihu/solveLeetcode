@@ -42,9 +42,10 @@ func (bin *Binlog) CreateTable(db *sql.DB, sql string) (bool, error) {
 	return true, err
 }
 
-func (bin *Binlog) ExecuteSqlCache(db *sql.DB, row []string) (bool, error) {
+func (bin *Binlog) ExecuteSqlCache(db *sql.DB, row []string, Ch chan<- string) (bool, error) {
 	r := strings.Join(row, ",")
 	CacheMap.Store(r, r)
+	Ch <- r
 	return true, nil
 }
 

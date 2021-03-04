@@ -27,6 +27,8 @@ func initDB(user, pwd, host, port, dbName string) (*sql.DB, error) {
 	return db, err
 }
 
+var Ch = make(chan string, 10)
+
 func main() {
 	var (
 		host   = flag.String("slave.host", "127.0.0.1", "host")
@@ -62,7 +64,7 @@ func main() {
 				errChan <- err
 			}
 			defer conn.Close()
-			point.ServerConn(conn, db)
+			point.ServerConn(conn, db, Ch)
 		}
 	}()
 
@@ -70,22 +72,17 @@ func main() {
 		// 缓存数据异步入库
 		var bin = model.Binlog{}
 		for {
-			time.Sleep(1 * time.Second)
-			keys := make([]interface{}, 0)
-			model.CacheMap.Range(func(key, value interface{}) bool {
+			key := <-Ch
+			if value, ok := model.CacheMap.Load(key); ok {
 				var sql string
 				switch value.(type) {
 				case string:
 					sql = value.(string)
 				}
 				if len(sql) > 0 {
-					keys = append(keys, key)
 					bin.ExecuteSql(db, sql)
+					model.CacheMap.Delete(key)
 				}
-				return true
-			})
-			for k, _ := range keys {
-				model.CacheMap.Delete(keys[k])
 			}
 		}
 	}()
