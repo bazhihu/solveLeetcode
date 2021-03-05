@@ -75,21 +75,9 @@ func ServerConn(conn net.Conn, db *sql.DB, bin *model.Binlog, ch chan<- string) 
 
 			switch postfix {
 			case "sql":
-				var buf []byte
-
-				fs, err := os.Open(filename)
-				if err != nil {
-					log.Fatalf("err :%+v", err)
-					return
-				}
-				defer fs.Close()
-
-				n, err := fs.Read(buf[:])
-				if err == io.EOF || err != nil {
-					log.Fatalf("read file err %+v", err)
-					return
-				}
-				_, err = bin.CreateTable(db, string(buf[:n]))
+				createSql := readFile(filename)
+				log.Println("|||||||||||||", createSql)
+				_, err := bin.CreateTable(db, createSql)
 				if err != nil {
 					log.Println("sql----------CreateTable-err", err)
 				}
@@ -146,4 +134,31 @@ func getFileStat(fileName string) int64 {
 	}
 	log.Printf("file size: %d\n", fileInfo.Size())
 	return fileInfo.Size()
+}
+
+// 一次性读取文件
+func readFile(filename string) string {
+
+	fs, err := os.Open(filename)
+	if err != nil {
+		log.Fatalf("err :%+v", err)
+		return ""
+	}
+	defer fs.Close()
+	var chunk []byte
+	buf := make([]byte, 1024)
+
+	for {
+		n, err := fs.Read(buf[:])
+		if err != nil && err != io.EOF {
+			log.Fatalf("read file err %+v", err)
+			return ""
+		}
+		if n == 0 {
+			break
+		}
+		chunk = append(chunk, buf[:n]...)
+	}
+
+	return string(chunk)
 }

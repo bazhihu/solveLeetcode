@@ -72,7 +72,6 @@ func main() {
 
 	go func() {
 		// 缓存数据异步入库
-		var bin = model.Binlog{}
 		for {
 			key := <-Ch
 			if value, ok := model.CacheMap.Load(key); ok {

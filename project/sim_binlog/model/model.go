@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 )
@@ -38,6 +39,7 @@ func (bin *Binlog) CreateTable(db *sql.DB, sql string) (bool, error) {
 	// set tableName
 	bin.TableName = strings.Split(strArr[0], "`")[1]
 
+	log.Println("||||||||||||||||sql", sql, bin.TableName)
 	_, err := db.Exec(sql)
 	return true, err
 }
@@ -56,6 +58,9 @@ func (bin *Binlog) ExecuteSql(db *sql.DB, row string) (bool, error) {
 		b   bool  = false
 		err error = nil
 	)
+
+	log.Println("||||||||_________ tablename", bin.TableName)
+
 	switch rows[l-1] {
 	case "I":
 		b, err = bin.insert(db, rows[0:l-1])
@@ -94,6 +99,7 @@ func (bin *Binlog) insert(db *sql.DB, row []string) (bool, error) {
 	if nil != err {
 		return false, err
 	}
+	log.Println("||||||||||||||||sqlText", sqlText)
 	//id, errI := res.LastInsertId()
 	return n > 0, nil
 }
@@ -118,5 +124,6 @@ func (bin *Binlog) delete(db *sql.DB, row []string) (bool, error) {
 	if nil != err {
 		return false, err
 	}
+	log.Println("||||||||||||||||sqlText", sqlText)
 	return n > 0, nil
 }
