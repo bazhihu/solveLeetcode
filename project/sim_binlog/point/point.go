@@ -51,69 +51,70 @@ func getData(conn net.Conn) (filename, postfix string) {
 			continue
 		case "<--end":
 			// 如果接收到客户端同志所有文件内容发送完毕消息则退出
-			log.Fatalf("receive over \n")
+			//log.Fatalf("receive over \n")
+			log.Println("+++++++++++++")
 			return
 		default:
 			writeFile(filename, buf[:n])
 		}
 	}
+	log.Println("--------------")
+	return
 }
 
-func ServerConn(conn net.Conn, db *sql.DB, ch chan<- string) {
+func ServerConn(conn net.Conn, db *sql.DB, bin *model.Binlog, ch chan<- string) {
 	var (
 		filename string
 		postfix  string
 	)
-
+	defer conn.Close()
 	filename, postfix = getData(conn)
 
-	// 处理数据
-	var bin = model.Binlog{}
+	if postfix != "" {
+		go func(filename, postfix string) {
 
-	switch postfix {
-	case "sql":
-		fileInfo, err := os.Stat(filename)
-		if err != nil {
-			log.Fatalf("err :%+v", err)
-			return
-		}
-		log.Fatalf("size :%d", fileInfo.Size())
-		var buf []byte
+			switch postfix {
+			case "sql":
+				var buf []byte
 
-		fs, err := os.Open(filename)
-		if err != nil {
-			log.Fatalf("err :%+v", err)
-			return
-		}
-		defer fs.Close()
+				fs, err := os.Open(filename)
+				if err != nil {
+					log.Fatalf("err :%+v", err)
+					return
+				}
+				defer fs.Close()
 
-		n, err := fs.Read(buf[:])
-		if err == io.EOF || err != nil {
-			log.Fatalf("read file err %+v", err)
-			return
-		}
-		bin.CreateTable(db, string(buf[:n]))
-	case "csv":
-		fs, err := os.Open(filename)
-		if err != nil {
-			log.Fatalf("err :%+v", err)
-			return
-		}
-		defer fs.Close()
+				n, err := fs.Read(buf[:])
+				if err == io.EOF || err != nil {
+					log.Fatalf("read file err %+v", err)
+					return
+				}
+				_, err = bin.CreateTable(db, string(buf[:n]))
+				if err != nil {
+					log.Println("sql----------CreateTable-err", err)
+				}
+			case "csv":
+				fs, err := os.Open(filename)
+				if err != nil {
+					log.Fatalf("err :%+v", err)
+					return
+				}
+				defer fs.Close()
 
-		r := csv.NewReader(fs)
-		for {
-			row, err := r.Read()
-			if err != nil && err != io.EOF {
-				log.Fatalf("err: %+v", err)
+				r := csv.NewReader(fs)
+				for {
+					row, err := r.Read()
+					if err != nil && err != io.EOF {
+						log.Fatalf("err: %+v", err)
+					}
+					if err == io.EOF {
+						return
+					}
+					bin.ExecuteSqlCache(db, row, ch)
+				}
 			}
-			if err == io.EOF {
-				return
-			}
-			bin.ExecuteSqlCache(db, row, ch)
-		}
+		}(filename, postfix)
 	}
-
 }
 
 // 把接收到的内容 写入文件

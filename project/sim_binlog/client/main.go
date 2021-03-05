@@ -16,7 +16,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("client dial faild: %s\n", err)
 	}
+
 	clientConnSql(conn)
+
+	// 发送第二个文件
+	conn, err = net.DialTimeout("tcp", ":8888", time.Second*10)
+	if err != nil {
+		log.Fatalf("client dial faild: %s\n", err)
+	}
+
 	clientConnCsv(conn)
 }
 

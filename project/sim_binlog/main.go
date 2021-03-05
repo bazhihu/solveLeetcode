@@ -27,7 +27,10 @@ func initDB(user, pwd, host, port, dbName string) (*sql.DB, error) {
 	return db, err
 }
 
-var Ch = make(chan string, 10)
+var (
+	Ch  = make(chan string, 10)
+	bin = model.Binlog{}
+)
 
 func main() {
 	var (
@@ -35,7 +38,7 @@ func main() {
 		port   = flag.String("slave.port", "3306", "port")
 		user   = flag.String("slave.user", "root", "user")
 		pwd    = flag.String("slave.password", "123456", "password")
-		dbName = flag.String("slave.db", "test", "dbname")
+		dbName = flag.String("slave.db", "herman", "dbname")
 	)
 	flag.Parse()
 
@@ -63,8 +66,7 @@ func main() {
 				log.Fatalf("accept faild: %s\n", err)
 				errChan <- err
 			}
-			defer conn.Close()
-			point.ServerConn(conn, db, Ch)
+			point.ServerConn(conn, db, &bin, Ch)
 		}
 	}()
 
@@ -80,7 +82,10 @@ func main() {
 					sql = value.(string)
 				}
 				if len(sql) > 0 {
-					bin.ExecuteSql(db, sql)
+					_, err := bin.ExecuteSql(db, sql)
+					if err != nil {
+						log.Println("sql----------err", err)
+					}
 					model.CacheMap.Delete(key)
 				}
 			}

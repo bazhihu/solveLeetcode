@@ -1,4 +1,4 @@
-CREATE TABLE `test` (
+CREATE TABLE `test_test` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '编号',
   `a` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'a',
   `b` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'b',
