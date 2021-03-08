@@ -4,9 +4,12 @@
 
 目录解释:  
 design  有关设计模式  
+创建型模式
 * [抽象工厂模式](https://github.com/bazhihu/solveLeetcode/blob/master/design/abstractfactory.go)
-* [外观模式](https://github.com/bazhihu/solveLeetcode/blob/master/design/facade.go)
 * [单例模式](https://github.com/bazhihu/solveLeetcode/blob/master/design/singleton.go)
+
+结构型模式
+* [外观模式](https://github.com/bazhihu/solveLeetcode/blob/master/design/facade.go)
 * [代理模式](https://github.com/bazhihu/solveLeetcode/blob/master/design/proxy.go)
 
 
