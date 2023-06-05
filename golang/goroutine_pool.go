@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	uuid "github.com/satori/go.uuid"
 	"log"
 	"math/rand"
 	"os"
@@ -58,7 +57,7 @@ func main() {
 		for {
 			r_num := rand.Int()
 			job := &Job{
-				Id:      uuid.NewV4().String(),
+				Id:      rand.Int(),
 				RandNum: r_num,
 			}
 			jobChan <- job
