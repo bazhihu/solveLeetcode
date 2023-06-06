@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds
+  namespace: kube-system
+  labels:
+    tier: nodeSelector
+    app: flannel
+spec: #规格
+  template:
+    metadata:
+      labels:
+        tier: nodeSelector
+        app: flannel
+    spec:
+      hostNetwork: true
+      nodeSelector: // 节点选择器
+        beta.kubernetes.io/arch: amd64
+      containers: // 运行容器
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.8.0-amd64
+        command: ["/opt/bin/flanneld", "--ip-masq", "--kube-subnet-mgr"]
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.8.0-amd64
+        command: ["/bin/sh", "-c", "set -e -x; cp -f /etc/kube-flannel/cni-conf.json"]

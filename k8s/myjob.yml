@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: myjob
+spec:
+  completions: 6 # 总数为6 每次执行为2 
+  parallelism: 2 # 并行的Pod 数量为 2
+  template:
+    metadata:
+      name: myjob
+    spec:
+      containers:
+      - name: hello
+        image: busybox
+        command: ["echo", "hello k8s job!"]
+      restartPolicy: Never # 重启策略
+
+
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: hello
+spec:
+  schedule: "*/1 * * * *"  # 每分钟启动一次
+  jobTemplate:  # 定义JOB的模板
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: busybox
+            command: ["echo", "hello k8s job!"]
+          restartPolicy: OnFailure
+
+# k8s 默认没有enable CronJob, 需要在kube-apiserver加入功能
+# 修改kube-apiserver配置文件 /etc/kubernetes/manifests/kubeapiserver.yaml
+# 在启动参数中加上 --runtime-config=batch/v2alpha1=true
