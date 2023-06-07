@@ -14,7 +14,7 @@ spec:
         image: busybox
         command: ["echo", "hello k8s job!"]
       restartPolicy: Never # 重启策略
-
+---
 
 apiVersion: batch/v2alpha1
 kind: CronJob
@@ -35,3 +35,6 @@ spec:
 # k8s 默认没有enable CronJob, 需要在kube-apiserver加入功能
 # 修改kube-apiserver配置文件 /etc/kubernetes/manifests/kubeapiserver.yaml
 # 在启动参数中加上 --runtime-config=batch/v2alpha1=true
+
+---
+

@@ -42,10 +42,19 @@ kubectl delete -f nginx.yml
 kubectl edit daemonset kube-proxy --namespace=kube-system
 
 # 查看单次运行的Job 状态
-kubectl get job
+kubectl get jobs
+kubectl get CronJob
 
 # 查看Pod的标准输出
 kubectl logs httpd-app
 
 # 重启kubelet 服务
 systemctl restart kubelet.service
+
+# 查看所有的namespace
+kubectl get namespace
+
+
+# 清理资源
+kubectl delete service hello-node
+kubectl delete deployment hello-node
