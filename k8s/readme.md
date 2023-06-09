@@ -58,3 +58,27 @@ kubectl get namespace
 # 清理资源
 kubectl delete service hello-node
 kubectl delete deployment hello-node
+
+
+# 内部访问Pod 方式：通过<SERVICE_NAME>.<NAMESPACE_NAME> 访问Service
+# 外部访问Service 方式：<NodeIP>:<NodePort> 访问Service
+
+
+
+cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-\$basearch
+
+enabled=1
+gpgcheck=1
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+exclude=kubelet kubeadm kubectl
+EOF
+
+sudo setenforce 0
+sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+sudo systemctl enable --now kubelet
